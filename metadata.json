@@ -1,0 +1,6 @@
+{
+  "name": "Aplikasi Keuangan MTQ Darul Abidin",
+  "description": "Sistem Penginputan, Pelaporan Keuangan Santri, Kas MTQ & Donatur, Kwitansi WhatsApp, Kartu Kendali, dan Export Laporan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

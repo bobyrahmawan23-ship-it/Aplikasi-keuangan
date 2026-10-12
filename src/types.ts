@@ -36,6 +36,7 @@ export interface Santri {
   kategoriSantri: 'Reguler' | 'Beasiswa' | 'Donatur Tetap';
   tanggalDaftar: string;
   alamat?: string;
+  nominalSpp?: number;
 }
 
 export interface TransaksiPemasukan {
@@ -94,3 +95,44 @@ export interface SummaryKas {
   totalPengeluaranTahunIni: number;
   totalTunggakanSpp: number;
 }
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  username: string;
+  role: 'Bendahara Keuangan' | 'Pimpinan MTQ' | 'Staf Administrasi';
+  avatar: string;
+}
+
+export interface ReminderTemplate {
+  id: string;
+  title: string;
+  category: 'santun' | 'islami' | 'kompak' | 'puitis' | 'tempo' | 'awal_bulan';
+  badge: string;
+  badgeColor: string;
+  template: (data: {
+    bulan: string;
+    jatuhTempo: string;
+    nominal: string;
+    noRekBSI: string;
+    noRekBRI: string;
+    atasNama: string;
+    kontakBendahara: string;
+  }) => string;
+}
+
+export interface KartuSppConfig {
+  namaLembaga: string; // e.g. "MAHAD TAHFIDZ QUR'AN DARUL ABIDIN"
+  subJudulLembaga: string; // e.g. "Lembaga Pendidikan Al-Qur'an & Pembinaan Karakter"
+  judulKartu: string; // e.g. "KARTU KENDALI PEMBAYARAN SPP SANTRI"
+  tahunAjaran: string; // e.g. "2026/2027"
+  nominalSppBulanan: number; // Editable monthly SPP tariff, no hardcoded 250k
+  namaBendahara: string; // e.g. "Ustadz H. Ahmad Dahlan, S.Pd.I"
+  jabatanBendahara: string; // e.g. "Bendahara Keuangan Mahad"
+  nipBendahara: string; // e.g. "NIP/ID: DA-BND-2026"
+  teksStempel: string; // e.g. "MAHAD TAHFIDZ QUR'AN DARUL ABIDIN"
+  tanggalValidasi: string; // YYYY-MM-DD
+  catatanKartu: string; // Additional card footer notes
+  nomorRekeningInfo: string; // Bank account info
+}
+

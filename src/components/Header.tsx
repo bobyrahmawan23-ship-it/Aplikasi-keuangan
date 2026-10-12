@@ -1,15 +1,34 @@
 import React from 'react';
-import { SummaryKas } from '../types';
+import { SummaryKas, AuthUser } from '../types';
 import { formatRupiah } from '../utils/formatters';
-import { Building2, Wallet, RefreshCw, Smartphone, Laptop, CheckCircle2, Trash2 } from 'lucide-react';
+import {
+  Wallet,
+  RefreshCw,
+  Smartphone,
+  Laptop,
+  Trash2,
+  LogOut,
+  Download,
+  UserCheck,
+} from 'lucide-react';
 
 interface HeaderProps {
   summary: SummaryKas;
+  currentUser: AuthUser | null;
+  onLogout: () => void;
+  onOpenInstallModal: () => void;
   onResetData: () => void;
   onOpenGatewayModal: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ summary, onResetData, onOpenGatewayModal }) => {
+export const Header: React.FC<HeaderProps> = ({
+  summary,
+  currentUser,
+  onLogout,
+  onOpenInstallModal,
+  onResetData,
+  onOpenGatewayModal,
+}) => {
   return (
     <header className="bg-indigo-900 text-white border-b border-indigo-800 sticky top-0 z-40 shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -38,7 +57,7 @@ export const Header: React.FC<HeaderProps> = ({ summary, onResetData, onOpenGate
           {/* Balance Cards & Actions */}
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-between md:justify-end">
             {/* Balance Kas MTQ */}
-            <div className="bg-indigo-950/80 border border-indigo-800 rounded-xl px-3 py-1 flex items-center gap-2 min-w-[130px] sm:min-w-[150px]">
+            <div className="bg-indigo-950/80 border border-indigo-800 rounded-xl px-3 py-1 flex items-center gap-2 min-w-[120px] sm:min-w-[140px]">
               <div className="p-1 rounded-md bg-indigo-800/60 text-indigo-300">
                 <Wallet className="w-3.5 h-3.5" />
               </div>
@@ -53,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({ summary, onResetData, onOpenGate
             </div>
 
             {/* Balance Kas Donatur */}
-            <div className="bg-indigo-950/80 border border-indigo-800 rounded-xl px-3 py-1 flex items-center gap-2 min-w-[130px] sm:min-w-[150px]">
+            <div className="bg-indigo-950/80 border border-indigo-800 rounded-xl px-3 py-1 flex items-center gap-2 min-w-[120px] sm:min-w-[140px]">
               <div className="p-1 rounded-md bg-amber-900/60 text-amber-300">
                 <Wallet className="w-3.5 h-3.5" />
               </div>
@@ -69,10 +88,20 @@ export const Header: React.FC<HeaderProps> = ({ summary, onResetData, onOpenGate
 
             <div className="hidden sm:block h-6 w-[1px] bg-indigo-800" />
 
+            {/* Install on Mobile / Download App Button */}
+            <button
+              onClick={onOpenInstallModal}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-2.5 sm:px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
+              title="Pasang / Download Aplikasi ke Layar HP"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-amber-300" />
+              <span className="text-[11px]">Pasang di HP</span>
+            </button>
+
             {/* Payment Gateway Trigger Button */}
             <button
               onClick={onOpenGatewayModal}
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
+              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
               title="Bayar SPP / QRIS Gateway"
             >
               <RefreshCw className="w-3.5 h-3.5" />
@@ -82,22 +111,40 @@ export const Header: React.FC<HeaderProps> = ({ summary, onResetData, onOpenGate
             {/* Reset Data Button */}
             <button
               onClick={onResetData}
-              className="bg-red-500/20 text-red-200 hover:text-white border border-red-500/30 hover:bg-red-600/80 px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all uppercase"
+              className="bg-red-500/20 text-red-200 hover:text-white border border-red-500/30 hover:bg-red-600/80 px-2 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all uppercase"
               title="Reset / Hapus Data Kas Bawaan Aplikasi"
             >
               <Trash2 className="w-3.5 h-3.5 text-red-300" />
-              <span className="hidden lg:inline text-[10px]">Reset Data</span>
+              <span className="hidden xl:inline text-[10px]">Reset</span>
             </button>
 
-            {/* Device Indicator */}
-            <div className="hidden xl:flex items-center gap-1 text-[10px] text-indigo-300 bg-indigo-950/50 px-2 py-1 rounded-lg border border-indigo-800">
-              <Laptop className="w-3 h-3" />
-              <Smartphone className="w-3 h-3" />
-              <span>Multi-Device</span>
-            </div>
+            {/* User Profile & Logout */}
+            {currentUser && (
+              <div className="flex items-center gap-1.5 bg-indigo-950/90 border border-indigo-700/80 pl-2 pr-1 py-1 rounded-xl">
+                <div className="text-left hidden lg:block">
+                  <div className="text-[11px] font-bold text-white leading-tight truncate max-w-[130px]">
+                    {currentUser.name}
+                  </div>
+                  <div className="text-[9px] text-amber-300 font-semibold">{currentUser.role}</div>
+                </div>
+
+                <div className="w-7 h-7 rounded-lg bg-indigo-800 text-amber-300 font-bold text-xs flex items-center justify-center shrink-0">
+                  {currentUser.avatar}
+                </div>
+
+                <button
+                  onClick={onLogout}
+                  className="p-1 text-indigo-300 hover:text-rose-300 hover:bg-indigo-900 rounded-lg transition-colors"
+                  title="Keluar / Log Out dari Sistem"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </header>
   );
 };
+

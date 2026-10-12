@@ -14,12 +14,16 @@ import {
   DollarSign,
   QrCode,
   CheckCircle2,
+  Edit3,
+  X,
+  Check,
 } from 'lucide-react';
 
 interface InputPemasukanProps {
   pemasukanList: TransaksiPemasukan[];
   santriList: Santri[];
   onAddPemasukan: (trx: Omit<TransaksiPemasukan, 'id' | 'kwitansiTerkirim'>) => void;
+  onUpdatePemasukan?: (trx: TransaksiPemasukan) => void;
   onDeletePemasukan: (id: string) => void;
   onOpenWaReceipt: (trx: TransaksiPemasukan) => void;
   onOpenGatewayModal: () => void;
@@ -29,6 +33,7 @@ export const InputPemasukan: React.FC<InputPemasukanProps> = ({
   pemasukanList,
   santriList,
   onAddPemasukan,
+  onUpdatePemasukan,
   onDeletePemasukan,
   onOpenWaReceipt,
   onOpenGatewayModal,
@@ -36,13 +41,27 @@ export const InputPemasukan: React.FC<InputPemasukanProps> = ({
   const [selectedSantriNis, setSelectedSantriNis] = useState<string>('');
   const [namaPembayar, setNamaPembayar] = useState<string>('');
   const [kategori, setKategori] = useState<KategoriPemasukan>('SPP Bulanan');
-  const [nominal, setNominal] = useState<string>('250000');
+  const [nominal, setNominal] = useState<string>('');
   const [sumberKas, setSumberKas] = useState<SumberKas>('Kas MTQ');
   const [metodePembayaran, setMetodePembayaran] = useState<MetodePembayaran>('Transfer Bank');
   const [tahunAjaran, setTahunAjaran] = useState<string>('2026/2027');
   const [bulanSpp, setBulanSpp] = useState<string>('Juli 2026');
   const [tanggal, setTanggal] = useState<string>(new Date().toISOString().split('T')[0]);
   const [catatan, setCatatan] = useState<string>('');
+
+  // Editing state for existing transaction
+  const [editingTrx, setEditingTrx] = useState<TransaksiPemasukan | null>(null);
+  const [editTanggal, setEditTanggal] = useState<string>('');
+  const [editNamaPembayar, setEditNamaPembayar] = useState<string>('');
+  const [editSantriId, setEditSantriId] = useState<string>('');
+  const [editKategori, setEditKategori] = useState<KategoriPemasukan>('SPP Bulanan');
+  const [editNominal, setEditNominal] = useState<string>('');
+  const [editSumberKas, setEditSumberKas] = useState<SumberKas>('Kas MTQ');
+  const [editMetode, setEditMetode] = useState<MetodePembayaran>('Transfer Bank');
+  const [editTahunAjaran, setEditTahunAjaran] = useState<string>('2026/2027');
+  const [editBulanSpp, setEditBulanSpp] = useState<string>('');
+  const [editStatus, setEditStatus] = useState<'Lunas' | 'Pending' | 'Gagal'>('Lunas');
+  const [editCatatan, setEditCatatan] = useState<string>('');
 
   // Search & Filter state
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -72,6 +91,9 @@ export const InputPemasukan: React.FC<InputPemasukanProps> = ({
         if (s.tunggakanSppTahunLalu > 0 && kategori === 'SPP Bulanan') {
           setTahunAjaran('Tunggakan 2025/2026');
         }
+        if (s.nominalSpp && s.nominalSpp > 0) {
+          setNominal(s.nominalSpp.toString());
+        }
       }
     }
   };
@@ -97,9 +119,52 @@ export const InputPemasukan: React.FC<InputPemasukanProps> = ({
       status: 'Lunas',
     });
 
-    // Reset form
-    setNominal('250000');
+    // Reset form - NO hardcoded 250000
+    setNominal('');
     setCatatan('');
+  };
+
+  // Open Edit Modal for a past transaction
+  const handleOpenEditTrx = (trx: TransaksiPemasukan) => {
+    setEditingTrx(trx);
+    setEditTanggal(trx.tanggal);
+    setEditNamaPembayar(trx.namaPembayar);
+    setEditSantriId(trx.santriId || '');
+    setEditKategori(trx.kategori);
+    setEditNominal(trx.nominal.toString());
+    setEditSumberKas(trx.sumberKas);
+    setEditMetode(trx.metodePembayaran);
+    setEditTahunAjaran(trx.tahunAjaran);
+    setEditBulanSpp(trx.bulanSpp || '');
+    setEditStatus(trx.status);
+    setEditCatatan(trx.catatan);
+  };
+
+  const handleSaveEditTrx = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTrx || !onUpdatePemasukan) return;
+
+    if (!editNamaPembayar.trim() || !editNominal || Number(editNominal) <= 0) {
+      alert('Harap isi nama pembayar dan nominal yang valid.');
+      return;
+    }
+
+    onUpdatePemasukan({
+      ...editingTrx,
+      tanggal: editTanggal,
+      namaPembayar: editNamaPembayar,
+      santriId: editSantriId || undefined,
+      kategori: editKategori,
+      nominal: Number(editNominal),
+      sumberKas: editSumberKas,
+      metodePembayaran: editMetode,
+      tahunAjaran: editTahunAjaran,
+      bulanSpp: editBulanSpp || undefined,
+      status: editStatus,
+      catatan: editCatatan,
+    });
+
+    setEditingTrx(null);
   };
 
   const filteredList = pemasukanList.filter(item => {
@@ -217,7 +282,7 @@ export const InputPemasukan: React.FC<InputPemasukanProps> = ({
               <div className="relative">
                 <input
                   type="number"
-                  placeholder="250000"
+                  placeholder="Masukkan nominal (cth: 300000)"
                   value={nominal}
                   onChange={e => setNominal(e.target.value)}
                   className="w-full pl-8 pr-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-indigo-900 focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
@@ -415,13 +480,22 @@ export const InputPemasukan: React.FC<InputPemasukanProps> = ({
                       </button>
                     </td>
                     <td className="px-3 py-2 text-right">
-                      <button
-                        onClick={() => onDeletePemasukan(item.id)}
-                        className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-all"
-                        title="Hapus Transaksi"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => handleOpenEditTrx(item)}
+                          className="p-1 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-all"
+                          title="Edit Transaksi (Nominal, Tanggal, Status)"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => onDeletePemasukan(item.id)}
+                          className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-all"
+                          title="Hapus Transaksi"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -436,6 +510,171 @@ export const InputPemasukan: React.FC<InputPemasukanProps> = ({
           </table>
         </div>
       </div>
+
+      {/* Modal Edit Transaksi / Santri Lunas */}
+      {editingTrx && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+            <div className="bg-gradient-to-r from-indigo-900 to-indigo-800 text-white px-5 py-4 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-sm flex items-center gap-2">
+                  <Edit3 className="w-4 h-4 text-amber-400" />
+                  Edit Transaksi & Data Lunas
+                </h3>
+                <p className="text-[11px] text-indigo-200 mt-0.5">
+                  ID Transaksi: <span className="font-mono font-bold text-white">{editingTrx.id}</span>
+                </p>
+              </div>
+              <button
+                onClick={() => setEditingTrx(null)}
+                className="text-indigo-200 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditTrx} className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Tanggal</label>
+                  <input
+                    type="date"
+                    value={editTanggal}
+                    onChange={e => setEditTanggal(e.target.value)}
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Status Pembayaran</label>
+                  <select
+                    value={editStatus}
+                    onChange={e => setEditStatus(e.target.value as 'Lunas' | 'Pending' | 'Gagal')}
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-indigo-900"
+                  >
+                    <option value="Lunas">✓ Lunas</option>
+                    <option value="Pending">⏳ Pending</option>
+                    <option value="Gagal">✕ Gagal</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Nama Pembayar / Santri</label>
+                <input
+                  type="text"
+                  value={editNamaPembayar}
+                  onChange={e => setEditNamaPembayar(e.target.value)}
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Kategori</label>
+                  <select
+                    value={editKategori}
+                    onChange={e => setEditKategori(e.target.value as KategoriPemasukan)}
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold"
+                  >
+                    {categories.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Nominal (Rp)</label>
+                  <input
+                    type="number"
+                    value={editNominal}
+                    onChange={e => setEditNominal(e.target.value)}
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-indigo-900"
+                    placeholder="Masukkan nominal"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Tahun Ajaran</label>
+                  <input
+                    type="text"
+                    value={editTahunAjaran}
+                    onChange={e => setEditTahunAjaran(e.target.value)}
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Bulan SPP (Jika Ada)</label>
+                  <input
+                    type="text"
+                    value={editBulanSpp}
+                    onChange={e => setEditBulanSpp(e.target.value)}
+                    placeholder="Contoh: Juli 2026"
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Sumber Kas</label>
+                  <select
+                    value={editSumberKas}
+                    onChange={e => setEditSumberKas(e.target.value as SumberKas)}
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs"
+                  >
+                    <option value="Kas MTQ">Kas MTQ</option>
+                    <option value="Kas Donatur">Kas Donatur</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Metode Pembayaran</label>
+                  <select
+                    value={editMetode}
+                    onChange={e => setEditMetode(e.target.value as MetodePembayaran)}
+                    className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs"
+                  >
+                    <option value="Transfer Bank">Transfer Bank</option>
+                    <option value="Tunai">Tunai</option>
+                    <option value="Payment Gateway (QRIS/VA)">Payment Gateway (QRIS/VA)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">Catatan / Keterangan</label>
+                <textarea
+                  value={editCatatan}
+                  onChange={e => setEditCatatan(e.target.value)}
+                  rows={2}
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs"
+                  placeholder="Keterangan pembayaran..."
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setEditingTrx(null)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
+                >
+                  <Check className="w-4 h-4" />
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

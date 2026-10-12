@@ -1,7 +1,17 @@
 import React, { useState } from 'react';
 import { Santri, TransaksiPemasukan } from '../types';
 import { formatRupiah, formatDateIndo, generateWaReceiptLink } from '../utils/formatters';
-import { CreditCard, CheckCircle2, Clock, Send, Printer, User, AlertCircle, Sparkles } from 'lucide-react';
+import {
+  CreditCard,
+  CheckCircle2,
+  Clock,
+  Send,
+  Printer,
+  User,
+  AlertCircle,
+  Sparkles,
+  Image as ImageIcon,
+} from 'lucide-react';
 
 interface KartuKendaliProps {
   santriList: Santri[];
@@ -9,6 +19,7 @@ interface KartuKendaliProps {
   selectedSantri: Santri | null;
   onSelectSantri: (santri: Santri) => void;
   onPaySppForMonth: (santri: Santri, monthName: string, isArrears: boolean) => void;
+  onNavigateToImageCard?: () => void;
 }
 
 export const KartuKendali: React.FC<KartuKendaliProps> = ({
@@ -17,6 +28,7 @@ export const KartuKendali: React.FC<KartuKendaliProps> = ({
   selectedSantri,
   onSelectSantri,
   onPaySppForMonth,
+  onNavigateToImageCard,
 }) => {
   const currentSantri = selectedSantri || santriList[0] || null;
 
@@ -50,7 +62,7 @@ export const KartuKendali: React.FC<KartuKendaliProps> = ({
   const handleSendWaControlCard = () => {
     if (!currentSantri) return;
 
-    let text = `*KARTU KENDALI PEMBAYARAN SPP SANTRI*\n*MTQ DARUL ABIDIN*\n----------------------------------------\n*NAMA:* ${currentSantri.nama}\n*NIS:* ${currentSantri.nis}\n*KELAS:* ${currentSantri.kelas}\n*WALI:* ${currentSantri.namaOrangTua}\n----------------------------------------\n*STATUS TUNGGAKAN TA LALU:* ${formatRupiah(currentSantri.tunggakanSppTahunLalu)}\n*TOTAL DIBAYARKAN:* ${formatRupiah(totalPaid)}\n\n*STATUS SPP TA 2026/2027:*\n`;
+    let text = `*KARTU KENDALI PEMBAYARAN SPP SANTRI*\n*MAHAD TAHFIDZ QUR'AN DARUL ABIDIN*\n----------------------------------------\n*NAMA:* ${currentSantri.nama}\n*NIS:* ${currentSantri.nis}\n*KELAS:* ${currentSantri.kelas}\n*WALI:* ${currentSantri.namaOrangTua}\n----------------------------------------\n*STATUS TUNGGAKAN TA LALU:* ${formatRupiah(currentSantri.tunggakanSppTahunLalu)}\n*TOTAL DIBAYARKAN:* ${formatRupiah(totalPaid)}\n\n*STATUS SPP TA 2026/2027:*\n`;
 
     monthsAcademicYear.forEach(m => {
       const isPaid = santriTransactions.some(
@@ -59,7 +71,7 @@ export const KartuKendali: React.FC<KartuKendaliProps> = ({
       text += `• ${m}: ${isPaid ? '✅ LUNAS' : '❌ BELUM'}\n`;
     });
 
-    text += `\n_Terima kasih atas perhatian dan kerjasama Bapak/Ibu Wali Santri._\n*MTQ Darul Abidin*`;
+    text += `\n_Terima kasih atas perhatian dan kerjasama Bapak/Ibu Wali Santri._\n*MAHAD TAHFIDZ QUR'AN DARUL ABIDIN*`;
 
     const link = generateWaReceiptLink(currentSantri.noWaOrangTua, text);
     window.open(link, '_blank');
@@ -121,7 +133,17 @@ export const KartuKendali: React.FC<KartuKendaliProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {onNavigateToImageCard && (
+                  <button
+                    onClick={onNavigateToImageCard}
+                    className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-xs"
+                    title="Terbitkan Kartu SPP Gambar (.PNG) untuk dikirim ke WA"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    <span>Terbitkan Kartu Gambar</span>
+                  </button>
+                )}
                 <button
                   onClick={handleSendWaControlCard}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-xs"
@@ -196,7 +218,13 @@ export const KartuKendali: React.FC<KartuKendaliProps> = ({
                   >
                     <div>
                       <span className="text-xs font-bold text-slate-800 block">{mName}</span>
-                      <span className="text-[10px] text-slate-500">Nominal: Rp 250.000</span>
+                      <span className="text-[10px] text-slate-500 font-mono">
+                        {isPaid && matchingTrx
+                          ? `Terbayar: ${formatRupiah(matchingTrx.nominal)}`
+                          : currentSantri.nominalSpp
+                          ? `Tarif: ${formatRupiah(currentSantri.nominalSpp)}`
+                          : 'Tarif SPP Santri'}
+                      </span>
                     </div>
 
                     {isPaid ? (

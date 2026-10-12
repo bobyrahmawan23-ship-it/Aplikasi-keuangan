@@ -16,7 +16,7 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
 }) => {
   const [selectedSantriNis, setSelectedSantriNis] = useState<string>(santriList[0]?.nis || '');
   const [kategori, setKategori] = useState<KategoriPemasukan>('SPP Bulanan');
-  const [nominal, setNominal] = useState<string>('250000');
+  const [nominal, setNominal] = useState<string>(santriList[0]?.nominalSpp ? santriList[0].nominalSpp.toString() : '');
   const [bulanSpp, setBulanSpp] = useState<string>('Juli 2026');
   const [gatewayMethod, setGatewayMethod] = useState<'QRIS' | 'VA_BSI' | 'VA_BRI'>('QRIS');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -74,7 +74,14 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
               <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-1">Pilih Santri *</label>
               <select
                 value={selectedSantriNis}
-                onChange={e => setSelectedSantriNis(e.target.value)}
+                onChange={e => {
+                  const newNis = e.target.value;
+                  setSelectedSantriNis(newNis);
+                  const found = santriList.find(s => s.nis === newNis);
+                  if (found?.nominalSpp) {
+                    setNominal(found.nominalSpp.toString());
+                  }
+                }}
                 className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500"
               >
                 {santriList.map(s => (

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="50%" stop-color="#312e81" />
+      <stop offset="100%" stop-color="#064e3b" />
+    </linearGradient>
+    <linearGradient id="goldGrad512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad512)" />
+  <circle cx="256" cy="256" r="200" fill="none" stroke="url(#goldGrad512)" stroke-width="8" stroke-dasharray="16,10" opacity="0.6"/>
+  <!-- Mosque Dome Silhouette -->
+  <path d="M256 96 C214 144 176 182 176 230 C176 246 182 256 192 262 L320 262 C330 256 336 246 336 230 C336 182 298 144 256 96 Z" fill="url(#goldGrad512)" opacity="0.9" />
+  <circle cx="256" cy="85" r="10" fill="#fef08a" />
+  <!-- Crescent & Star -->
+  <path d="M256 58 A 16 16 0 1 0 272 74 A 12 12 0 1 1 256 58 Z" fill="#fef08a"/>
+  <!-- Base Building Pillars -->
+  <rect x="180" y="272" width="152" height="36" rx="6" fill="#e0e7ff" />
+  <!-- Text MTQ -->
+  <text x="256" y="378" font-family="system-ui, -apple-system, sans-serif" font-size="76" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="4">MTQ</text>
+  <text x="256" y="426" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="700" fill="#fcd34d" text-anchor="middle" letter-spacing="2">DARUL ABIDIN</text>
+</svg>

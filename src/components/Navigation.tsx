@@ -8,6 +8,8 @@ import {
   FileSpreadsheet,
   MessageSquare,
   BookOpenCheck,
+  Image as ImageIcon,
+  BellRing,
 } from 'lucide-react';
 
 export type ActiveTab =
@@ -16,6 +18,8 @@ export type ActiveTab =
   | 'pengeluaran'
   | 'santri'
   | 'kartu-kendali'
+  | 'kartu-spp-gambar'
+  | 'pengingat-spp'
   | 'laporan'
   | 'whatsapp'
   | 'panduan';
@@ -29,6 +33,8 @@ interface NavigationProps {
 export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab, pendingWaCount = 0 }) => {
   const tabs = [
     { id: 'dashboard' as ActiveTab, label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'kartu-spp-gambar' as ActiveTab, label: 'Kartu SPP (Gambar)', icon: ImageIcon },
+    { id: 'pengingat-spp' as ActiveTab, label: 'Pengingat SPP (Grup WA)', icon: BellRing },
     { id: 'pemasukan' as ActiveTab, label: 'Pemasukan Kas', icon: ArrowDownLeft },
     { id: 'pengeluaran' as ActiveTab, label: 'Pengeluaran Kas', icon: ArrowUpRight },
     { id: 'santri' as ActiveTab, label: 'Data Santri', icon: Users },
@@ -42,6 +48,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab,
     },
     { id: 'panduan' as ActiveTab, label: 'Panduan & Rumus', icon: BookOpenCheck },
   ];
+
 
   return (
     <nav className="bg-white border-b border-slate-200 sticky top-[69px] z-30 shadow-xs">

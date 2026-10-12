@@ -44,6 +44,7 @@ export const DataSantri: React.FC<DataSantriProps> = ({
   const [noWaOrangTua, setNoWaOrangTua] = useState<string>('');
   const [status, setStatus] = useState<'Aktif' | 'Non-Aktif' | 'Alumni'>('Aktif');
   const [tunggakanSppTahunLalu, setTunggakanSppTahunLalu] = useState<string>('0');
+  const [nominalSpp, setNominalSpp] = useState<string>('');
   const [kategoriSantri, setKategoriSantri] = useState<'Reguler' | 'Beasiswa' | 'Donatur Tetap'>('Reguler');
   const [alamat, setAlamat] = useState<string>('');
 
@@ -63,6 +64,7 @@ export const DataSantri: React.FC<DataSantriProps> = ({
     setNoWaOrangTua('0812');
     setStatus('Aktif');
     setTunggakanSppTahunLalu('0');
+    setNominalSpp('');
     setKategoriSantri('Reguler');
     setAlamat('');
     setEditingSantri(null);
@@ -82,6 +84,7 @@ export const DataSantri: React.FC<DataSantriProps> = ({
     setNoWaOrangTua(s.noWaOrangTua);
     setStatus(s.status);
     setTunggakanSppTahunLalu(s.tunggakanSppTahunLalu.toString());
+    setNominalSpp(s.nominalSpp ? s.nominalSpp.toString() : '');
     setKategoriSantri(s.kategoriSantri);
     setAlamat(s.alamat || '');
     setShowAddModal(true);
@@ -109,6 +112,7 @@ export const DataSantri: React.FC<DataSantriProps> = ({
         noWaOrangTua: phoneValidation.formatted,
         status,
         tunggakanSppTahunLalu: Number(tunggakanSppTahunLalu),
+        nominalSpp: nominalSpp ? Number(nominalSpp) : undefined,
         kategoriSantri,
         alamat,
       });
@@ -121,6 +125,7 @@ export const DataSantri: React.FC<DataSantriProps> = ({
         noWaOrangTua: phoneValidation.formatted,
         status,
         tunggakanSppTahunLalu: Number(tunggakanSppTahunLalu),
+        nominalSpp: nominalSpp ? Number(nominalSpp) : undefined,
         kategoriSantri,
         tanggalDaftar: new Date().toISOString().split('T')[0],
         alamat,
@@ -447,6 +452,22 @@ export const DataSantri: React.FC<DataSantriProps> = ({
                     className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg font-bold text-rose-700"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-700 mb-1">
+                  Tarif SPP Bulanan Khusus Santri Ini (Rp) - Opsional
+                </label>
+                <input
+                  type="number"
+                  placeholder="Kosongkan jika mengikuti tarif umum / gratis"
+                  value={nominalSpp}
+                  onChange={e => setNominalSpp(e.target.value)}
+                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-300 rounded-lg font-bold text-indigo-900"
+                />
+                <span className="text-[10px] text-slate-400 mt-0.5 block">
+                  Nominal ini akan otomatis terbaca di form kas masuk dan kartu SPP santri ini.
+                </span>
               </div>
 
               <div>

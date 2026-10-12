@@ -6,6 +6,7 @@ import {
   LogPesanWhatsApp,
   SummaryKas,
   ToastNotice,
+  AuthUser,
 } from './types';
 import { initialSantriList, initialPemasukanList, initialPengeluaranList, initialWaLogs } from './data/initialData';
 import { Header } from './components/Header';
@@ -15,18 +16,52 @@ import { InputPemasukan } from './components/InputPemasukan';
 import { InputPengeluaran } from './components/InputPengeluaran';
 import { DataSantri } from './components/DataSantri';
 import { KartuKendali } from './components/KartuKendali';
+import { PenerbitanKartuSppGambar } from './components/PenerbitanKartuSppGambar';
+import { PengingatSppDashboard } from './components/PengingatSppDashboard';
 import { RekapLaporan } from './components/RekapLaporan';
 import { WhatsAppCenter } from './components/WhatsAppCenter';
 import { PanduanSpreadsheet } from './components/PanduanSpreadsheet';
 import { ToastNotification } from './components/ToastNotification';
 import { KwitansiModal } from './components/KwitansiModal';
 import { PaymentGatewayModal } from './components/PaymentGatewayModal';
+import { InstallPwaModal } from './components/InstallPwaModal';
+import { LoginScreen, defaultUsers } from './components/LoginScreen';
 import { generateWaReceiptText, generateWaReceiptLink, formatPhoneWA } from './utils/formatters';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
 
+  // Authentication State
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+    const saved = localStorage.getItem('mtq_auth_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return defaultUsers[0];
+      }
+    }
+    return defaultUsers[0]; // Default logged-in as Bendahara
+  });
+
+  // PWA Install Prompt State
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallModal, setShowInstallModal] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
   // Load state from localStorage or initialSeed
+
   const [santriList, setSantriList] = useState<Santri[]>(() => {
     const saved = localStorage.getItem('mtq_santri_list');
     return saved ? JSON.parse(saved) : initialSantriList;
@@ -216,14 +251,27 @@ export default function App() {
     }
   };
 
-  // Handle Paying SPP from Control Card directly
-  const handlePaySppForMonth = (santri: Santri, monthName: string, isArrears: boolean) => {
+  // Handle Update Existing Pemasukan / Pelunasan
+  const handleUpdatePemasukan = (updated: TransaksiPemasukan) => {
+    setPemasukanList(prev => prev.map(p => (p.id === updated.id ? updated : p)));
+    addToast('success', 'Transaksi Diperbarui', `Data transaksi ${updated.id} berhasil disimpan.`);
+  };
+
+  // Handle Paying SPP from Control Card directly (NO hardcoded 250000!)
+  const handlePaySppForMonth = (santri: Santri, monthName: string, isArrears: boolean, customNominal?: number) => {
+    const nominalToUse =
+      customNominal !== undefined
+        ? customNominal
+        : isArrears
+        ? santri.tunggakanSppTahunLalu
+        : santri.nominalSpp || 0;
+
     handleAddPemasukan({
       tanggal: new Date().toISOString().split('T')[0],
       santriId: santri.nis,
       namaPembayar: `${santri.nama} (${santri.namaOrangTua})`,
       kategori: 'SPP Bulanan',
-      nominal: isArrears ? santri.tunggakanSppTahunLalu : 250000,
+      nominal: nominalToUse,
       sumberKas: 'Kas MTQ',
       metodePembayaran: 'Transfer Bank',
       tahunAjaran: isArrears ? 'Tunggakan 2025/2026' : '2026/2027',
@@ -290,14 +338,57 @@ export default function App() {
     addToast('success', 'Pengingat WA Dikirim', `Pemberitahuan telah dikirim ke +${phoneCheck.formatted}`);
   };
 
+  // Handle User Login
+  const handleLogin = (user: AuthUser) => {
+    setCurrentUser(user);
+    localStorage.setItem('mtq_auth_user', JSON.stringify(user));
+    addToast('success', 'Selamat Datang', `Login berhasil sebagai ${user.name} (${user.role})`);
+  };
+
+  // Handle User Logout
+  const handleLogout = () => {
+    if (confirm('Apakah Anda yakin ingin keluar / Log Out dari sistem MTQ Darul Abidin?')) {
+      setCurrentUser(null);
+      localStorage.removeItem('mtq_auth_user');
+      addToast('info', 'Sampai Jumpa', 'Anda telah berhasil keluar dari sistem.');
+    }
+  };
+
+  // If user is not logged in, show Login Screen
+  if (!currentUser) {
+    return (
+      <>
+        <ToastNotification toasts={toasts} onDismiss={handleDismissToast} />
+        <LoginScreen onLogin={handleLogin} />
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-100/90 text-slate-800 font-sans flex flex-col antialiased">
       {/* Toast Notification Container */}
       <ToastNotification toasts={toasts} onDismiss={handleDismissToast} />
 
+      {/* Mobile PWA Download Reminder Strip */}
+      <div className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 text-slate-950 px-3 py-1.5 text-[11px] font-bold flex items-center justify-between sm:hidden shadow-xs">
+        <div className="flex items-center gap-1.5 truncate">
+          <span>📲</span>
+          <span className="truncate">Tampilkan di Layar HP (Aplikasi PWA)</span>
+        </div>
+        <button
+          onClick={() => setShowInstallModal(true)}
+          className="bg-slate-950 text-white hover:bg-slate-900 px-2.5 py-0.5 rounded text-[10px] shrink-0 font-extrabold uppercase shadow-xs active:scale-95"
+        >
+          Pasang
+        </button>
+      </div>
+
       {/* Header */}
       <Header
         summary={summaryKas}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onOpenInstallModal={() => setShowInstallModal(true)}
         onResetData={handleResetData}
         onOpenGatewayModal={() => setShowGatewayModal(true)}
       />
@@ -323,11 +414,34 @@ export default function App() {
           />
         )}
 
+        {/* Dasbor Penerbitan Kartu SPP Berupa Gambar */}
+        {activeTab === 'kartu-spp-gambar' && (
+          <PenerbitanKartuSppGambar
+            santriList={santriList}
+            pemasukanList={pemasukanList}
+            onPaySppForMonth={handlePaySppForMonth}
+            onUpdatePemasukan={handleUpdatePemasukan}
+            onDeletePemasukan={handleDeletePemasukan}
+            onSendWaLog={handleSendWaLog}
+            addToast={addToast}
+          />
+        )}
+
+        {/* Dasbor Pesan Pengingat SPP untuk Seluruh Wali Santri */}
+        {activeTab === 'pengingat-spp' && (
+          <PengingatSppDashboard
+            santriList={santriList}
+            pemasukanList={pemasukanList}
+            addToast={addToast}
+          />
+        )}
+
         {activeTab === 'pemasukan' && (
           <InputPemasukan
             pemasukanList={pemasukanList}
             santriList={santriList}
             onAddPemasukan={handleAddPemasukan}
+            onUpdatePemasukan={handleUpdatePemasukan}
             onDeletePemasukan={handleDeletePemasukan}
             onOpenWaReceipt={trx => setKwitansiTrx(trx)}
             onOpenGatewayModal={() => setShowGatewayModal(true)}
@@ -350,7 +464,7 @@ export default function App() {
             onDeleteSantri={handleDeleteSantri}
             onSelectSantriForControlCard={santri => {
               setSelectedSantriForCard(santri);
-              setActiveTab('kartu-kendali');
+              setActiveTab('kartu-spp-gambar');
             }}
             onSendWaNotice={handleSendWaNotice}
           />
@@ -363,6 +477,7 @@ export default function App() {
             selectedSantri={selectedSantriForCard}
             onSelectSantri={setSelectedSantriForCard}
             onPaySppForMonth={handlePaySppForMonth}
+            onNavigateToImageCard={() => setActiveTab('kartu-spp-gambar')}
           />
         )}
 
@@ -411,6 +526,17 @@ export default function App() {
         />
       )}
 
+      {/* PWA Install Modal */}
+      <InstallPwaModal
+        isOpen={showInstallModal}
+        onClose={() => setShowInstallModal(false)}
+        deferredPrompt={deferredPrompt}
+        onInstalled={() => {
+          setDeferredPrompt(null);
+          addToast('success', 'Aplikasi Terpasang', 'Aplikasi MTQ Darul Abidin berhasil dipasang di layar HP!');
+        }}
+      />
+
       {/* Footer */}
       <footer className="bg-emerald-950 text-emerald-300 border-t border-emerald-900 py-4 text-center text-xs mt-auto">
         <div className="max-w-7xl mx-auto px-4">
@@ -420,3 +546,4 @@ export default function App() {
     </div>
   );
 }
+

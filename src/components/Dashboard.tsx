@@ -95,6 +95,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <button
+              onClick={() => onNavigate('kartu-spp-gambar')}
+              className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-black px-3.5 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
+            >
+              <span>🖼️ Kartu SPP Gambar</span>
+            </button>
+            <button
+              onClick={() => onNavigate('pengingat-spp')}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3.5 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
+            >
+              <span>📢 Pengingat SPP WA</span>
+            </button>
+            <button
               onClick={() => onNavigate('pemasukan')}
               className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3.5 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
             >
